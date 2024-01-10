@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-sns.set_theme(style="darkgrid", font="Arial", rc={"axes.unicode_minus":False})
+# sns.set_theme(style="darkgrid", font="Arial", rc={"axes.unicode_minus":False})
 
 import torch
 from ultralytics import YOLO
@@ -21,19 +21,24 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
 
-# # model = YOLO("./yolov8l.pt")
-# model = YOLO("./yolov8n.pt")
+from wandb.integration.ultralytics import add_wandb_callback
+import wandb
 
-# results = model.train(data="./datasets/data.yaml", epochs=100, save_period=10, seed=seed)
+# Step 1: Initialize a Weights & Biases run
+wandb.init(project="YOLOv5") # 
+# # model = YOLO("./yolov8l.pt")
+model = YOLO("./yolov8n.pt")
+add_wandb_callback(model, enable_model_checkpointing=True)
+results = model.train(project="YOLOv5", data="./datasets/data.yaml", epochs=100, save_period=10, seed=seed)
 
 # Image.open("./runs/detect/train/labels.jpg")
 # Image.open("./runs/detect/train/labels_correlogram.jpg")
 # Image.open("./runs/detect/train/PR_curve.png")
 # Image.open("./runs/detect/train/confusion_matrix.png")
 # Image.open("./runs/detect/train/results.png")
-model_best = YOLO("./runs/detect/train/weights/best.pt")
-# metrics = model_best.val()
-
+model_best = YOLO("./YOLOv5/train/weights/best.pt")
+metrics = model_best.val()
+wandb.finish()
 # print("precision(B): ", metrics.results_dict["metrics/precision(B)"])
 # print("metrics/recall(B): ", metrics.results_dict["metrics/recall(B)"])
 # print("metrics/mAP50(B): ", metrics.results_dict["metrics/mAP50(B)"])
